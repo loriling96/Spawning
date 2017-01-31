@@ -1,23 +1,28 @@
 ## make ggplots
 
-#input filepath to csv containing the cleaned up data
-countDF=
-  
 library(ggplot2)
 library(dplyr)
 library(magrittr)
-library(reshape2)
+library(tidyr)
 
-data_long <- melt(countDF,
-                  # ID variables - all the variables to keep but not split apart on
-                  id.vars=c("Date", "Day.of.Cycle"),
-                  # The source columns
-                  measure.vars=c("Eggs", "Sperm", "DisEgg", "Embryos", "Larvae" ),
-                  # Name of the destination column that will identify the original column that the measurement came from
-                  variable.name="Spawn_type",
-                  value.name="Count")
+
+# MERGE ALL INCUBATOR FORMATTED DATA INTO SUPER DF ------------------------
+
+Ron_count=read.csv(file = "../Spawning/formattedData/Ron_spawncounts.csv", header = TRUE)
+New_count=read.csv(file="../Spawning/formattedData/NewIncubator_spawncounts.csv", header = TRUE)
+Newest_count=read.csv(file = "../Spawning/formattedData/NewestIncubator_spawncounts.csv", header= TRUE)
+Old_count=read.csv(file = "../Spawning/formattedData/OldIncubator_spawncounts.csv", header= TRUE)
+Cabinet_count=read.csv(file = "../Spawning/formattedData/Cabinet_spawncounts.csv", header= TRUE)
+
+ALL_count=dplyr::bind_rows(Cabinet_count, New_count, Newest_count, Old_count, Ron_count)
+
+data_long = ALL_count %>% 
+  gather(key= "Spawn_type", value = "count", 3:7)
 
 data_long$Date = as.Date(data_long$Date)
+
+
+# plots in lunar cycle days -----------------------------------------------
 
 data_long %>% 
   filter(Date > '2016-12-01' & Date < '2016-12-31') %>% 
@@ -27,4 +32,17 @@ data_long %>%
   scale_y_continuous(breaks = seq(0, 15, by =1)) +  #kept adjusting range for different incubators
   ggtitle("Spawning Frequency") +
   theme_bw()
+
+
+
+# plots in calendar days --------------------------------------------------
+data_long %>% 
+  filter(Date > '2016-12-01' & Date < '2016-12-31') %>%
+  ggplot(data=data_long, aes(x=Date, y=Count, fill=Spawn_type)) + 
+  geom_bar(stat = "identity") +
+  scale_x_date(date_breaks="month", date_labels=("%b"))+
+  ggtitle("Spawning Frequency") +
+  theme_bw()
+
+
   
