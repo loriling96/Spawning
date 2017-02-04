@@ -5,17 +5,20 @@ library(ggplot2)
 library(dplyr)
 library(magrittr)
 library(tidyr)
+library(htmltools)
 
 ui <- fluidPage(
-  dateRangeInput(inputId = "daterange", label = "Enter a date range", 
+  tags$h2("Frequency of Aiptasia spawning in Pringle Lab"),
+  column(3,
+      dateRangeInput(inputId = "daterange", label = "Enter a date range", 
                  format = "yyyy-mm-dd", start = "2016-01-01", end = "2016-12-31"),
-  #selectInput(inputId= "timeunit", label = "Select time unit",
-              #choices = c("Calendar days" = "Date", "lunar cycle days" = "Day.of.Cycle")),
-  checkboxGroupInput(inputId = "target", label = "Choose any/all incubators:", 
-                     choices = c("Cabinent", "New", "Newest","Old", "Ron")),
+      checkboxGroupInput(inputId = "target", label = "Choose any/all incubators:", 
+                choices = c("Cabinet", "New", "Newest","Old", "Ron"))
+        ),
+  column(9,
+         plotOutput(outputId = "spawnplot1"),
+         plotOutput(outputId = "spawnplot2"))
   
-  plotOutput(outputId = "spawnplot1"),
-  plotOutput(outputId = "spawnplot2")
 )
 
 data_long <- readRDS("Data/2016spawncounts.rds")
