@@ -14,7 +14,7 @@ ui <- fluidPage(
                             choices = c("Blue (Cabinet)", "Red (New)", "Green (Newest)","Orange (Old)", "Yellow (Ron)"),
                             selected = c("Blue (Cabinet)", "Red (New)", "Green (Newest)","Orange (Old)", "Yellow (Ron)")),
          dateRangeInput(inputId = "daterange", label = "Enter a date range", 
-                 format = "yyyy-mm-dd", start = "2016-01-01", end = "2017-03-31")
+                 format = "yyyy-mm-dd", start = "2016-01-01")
       
       #selectInput("select", label = "Select y-axis", 
        #           choices = list("raw count" = "n", "normalized count" = "norm.Count"), 
