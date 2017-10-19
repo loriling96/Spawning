@@ -26,7 +26,7 @@ ui <- fluidPage(
   
 )
 
-SpawnDF <- read.csv(file="Data/SpawningData20170630.csv", header = TRUE)
+SpawnDF <- read.csv(file="Data/SpawningData20171019.csv", header = TRUE)
 SpawnDF$Spawn.Date=as.Date(SpawnDF$Spawn.Date, format = "%m/%d/%y")
 #remove leading/trailing whitespace
 SType=trimws(SpawnDF$Spawn.Type, "right")
