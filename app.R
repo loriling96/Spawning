@@ -1,10 +1,8 @@
 ##shiny app for spawning data calendar plots
 
 library(shiny)
-library(ggplot2)
-library(dplyr)
+library(tidyverse)
 library(magrittr)
-library(tidyr)
 library(htmltools)
 
 ui <- fluidPage(
@@ -15,6 +13,7 @@ ui <- fluidPage(
                             selected = c("Blue (Cabinet)", "Red (New)", "Green (Newest)","Orange (Old)", "Yellow (Ron)")),
          dateRangeInput(inputId = "daterange", label = "Enter a date range", 
                  format = "yyyy-mm-dd", start = "2016-01-01")
+        
       
       #selectInput("select", label = "Select y-axis", 
        #           choices = list("raw count" = "n", "normalized count" = "norm.Count"), 
@@ -22,18 +21,15 @@ ui <- fluidPage(
         ),
   column(9,
          plotOutput(outputId = "spawnplot1"),
-         plotOutput(outputId = "spawnplot2"))
+         plotOutput(outputId = "spawnplot2")),
+         #plotOutput(outputId = "spawnplot3"),
+         print("last updated 2018-02-28")
   
 )
 
-SpawnDF <- read.csv(file="Data/SpawningData20171019.csv", header = TRUE)
-SpawnDF$Spawn.Date=as.Date(SpawnDF$Spawn.Date, format = "%m/%d/%y")
-#remove leading/trailing whitespace
-SType=trimws(SpawnDF$Spawn.Type, "right")
-#reassign levels
-levels(SType)= c("eggs", "sperm", "embryos", "larvae")
-#replace column data
-SpawnDF$Spawn.Type = SType
+SpawnDF <- read.csv(file="Data/SpawningData20180228.csv", header = TRUE)
+SpawnDF$Spawn.Date=as.Date(SpawnDF$Spawn.Date)
+levels(SpawnDF$Spawn.Type)
 
 server <- function(input, output){
 
@@ -49,6 +45,7 @@ server <- function(input, output){
         ggtitle("Spawning Frequency by calendar dates") + ylab("normalized counts")+
         theme_bw()+ theme(text = element_text(size = 16))
   })
+  
   output$spawnplot2 <-renderPlot({
     SpawnDF %>% 
       filter(Spawn.Date >= input$daterange[1] & Spawn.Date <= input$daterange[2]) %>%
@@ -61,6 +58,20 @@ server <- function(input, output){
         ggtitle("Spawning Frequency by Lunar Cycle") + ylab(" raw counts")+
         theme_bw()+theme(text = element_text(size = 16))
   })
+  
+  # output$spawnplot3 <-renderPlot({
+  #   SpawnDF %>% 
+  #     filter(Spawn.Date >= input$daterange[1] & Spawn.Date <= input$daterange[2]) %>%
+  #     filter(Incubator %in% input$target) %>%
+  #     group_by(Day.of.Cycle, Total...of.tanks ) %>% 
+  #     count(Spawn.Type) %>%
+  #     mutate(norm.Count = n/ Total...of.tanks )  %>%
+  #     ggplot( aes(x=Day.of.Cycle, y=norm.Count, fill=Spawn.Type)) +
+  #     geom_bar(stat = "identity") +
+  #     scale_x_continuous(breaks = c(1:30)) + 
+  #     ggtitle("Spawning Frequency by Lunar Cycle") + ylab(" normalized counts")+
+  #     theme_bw()+theme(text = element_text(size = 16))
+  # })
 }
 
 
