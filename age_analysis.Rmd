@@ -1,0 +1,47 @@
+---
+title: "Does Age correlate with ability to spawn?"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+```{r, import_data}
+SpawnDF <- read_csv(file="Data/SpawningData20180327.csv")
+colnames(SpawnDF) <- c("Spawn.Date", "Incubator", "Start.Date", "End.Date", "Tank.Name", "Male", "Female", "Spawn.Type", "Time.Found", "Cleavage", "Day.of.Cycle", "Total.Tanks", "notes")
+SpawnDF$`Spawn.Date` <- as.Date(SpawnDF$`Spawn.Date`, "%m/%d/%y")
+SpawnDF$Start.Date <- as.Date(SpawnDF$Start.Date, "%m/%d/%y")
+SpawnDF$End.Date <- as.Date(SpawnDF$End.Date, "%m/%d/%y")
+levels(SpawnDF$Spawn.Type) <- c("eggs", "sperm", "embryos", "larvae")
+```
+
+```{r, plot}
+SpawnDF %>% mutate(age_Days = Spawn.Date - Start.Date) %>% filter(age_Days > 0) %>% 
+  count(age_Days) %>% 
+  ggplot( aes(x=age_Days, y=n)) +
+  geom_point() +
+  theme_bw() +
+  ggtitle("Correlation of age of tank with spawning amount") + 
+  xlab("Age of tank (days)")
+  
+
+```
+```{r}
+p<-SpawnDF %>% mutate(age_Days = Spawn.Date - Start.Date) %>% filter(age_Days > 0) %>% 
+  group_by(age_Days) %>% 
+      count(Spawn.Type) %>%
+      ggplot( aes(x=age_Days, y=n, fill=Spawn.Type)) +
+        geom_bar(stat = "identity") +
+        ggtitle("Spawn Type Frequency by age of tank") + 
+        ylab("total spawn observations") + xlab("Age (days)") +
+        theme_bw() + theme(text = element_text(size = 12))
+
+p
+
+#Zoom in
+p + coord_cartesian(xlim=c(0,250)) +ggtitle("Zoom in")
+```
+
