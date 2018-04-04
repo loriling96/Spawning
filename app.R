@@ -5,6 +5,17 @@ library(tidyverse)
 library(magrittr)
 library(htmltools)
 
+# Global variables
+SpawnDF <- read.csv(file="Data/SpawningData20180404.csv", header = TRUE)
+
+#check that columns with dates are not character but date class
+SpawnDF$Spawn.Date=as.Date(SpawnDF$Spawn.Date)
+SpawnDF$Start.Date=as.Date(SpawnDF$Start.Date)
+SpawnDF$End.Date=as.Date(SpawnDF$End.Date, "%Y-%m-%d")
+
+#check that only four levels of spawn type
+levels(SpawnDF$Spawn.Type)
+
 ui <- fluidPage(
   tags$h2("Frequency of Aiptasia spawning in Pringle Lab"),
   column(3,
@@ -27,9 +38,7 @@ ui <- fluidPage(
   
 )
 
-SpawnDF <- read.csv(file="Data/SpawningData20180228.csv", header = TRUE)
-SpawnDF$Spawn.Date=as.Date(SpawnDF$Spawn.Date)
-levels(SpawnDF$Spawn.Type)
+
 
 server <- function(input, output){
 
