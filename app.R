@@ -17,8 +17,11 @@ SpawnDF <- SpawnDF %>% mutate(age_Days = Spawn.Date - Start.Date) %>%
   mutate(Lunar.age = 28 * (as.numeric(age_Days) %/% 28) + Day.of.Cycle -1)
 
 
-#check that only four levels of spawn type
-levels(SpawnDF$Spawn.Type)
+# Fix levels of strains
+SpawnDF$Female <- as.factor(gsub("H2.", "H2", SpawnDF$Female))
+SpawnDF$Female <- as.factor(gsub("unknown.*", "Unknown", SpawnDF$Female, ignore.case = TRUE))
+SpawnDF$Male <- as.factor(gsub("unknown.*", "Unknown", SpawnDF$Male, ignore.case = TRUE))
+Male.sel <- c("CC7", NA)
 
 ui <- fluidPage(
   tags$h2("Frequency of Aiptasia spawning in Pringle Lab"),
@@ -38,7 +41,7 @@ ui <- fluidPage(
          ),
   column(9,
          plotOutput(outputId = "spawnplot"),
-         print("last updated 2018-04-04")
+         print("last updated 2018-04-05")
   )
   
 )
@@ -60,17 +63,22 @@ server <- function(input, output){
         ylab("total spawn observations") + xlab(paste(input$xvar)) +
         theme_bw() + theme(text = element_text(size = 16))
     }  
-    if (input$xvar == "Strain") {
+    else if (input$xvar == "Strain") {
       SpawnDF %>%
         filter(Spawn.Date >= input$daterange[1] & Spawn.Date <= input$daterange[2]) %>% 
         filter(Incubator %in% input$target) %>% 
-        group_by(Female) %>% 
-        count(Spawn.Type) %>%
-        ggplot( aes(x=Female, y=n, fill=Spawn.Type)) +
+        filter(Male %in% Male.sel) %>%
+        mutate(Pair = paste0(Female, "_", Male)) %>% 
+        add_count(Pair) %>% 
+        group_by(Female, Male) %>% 
+        add_count(Spawn.Type) %>% 
+        mutate(norm.Count = nn/n) %>% 
+        ggplot( aes(x=Pair, y=norm.Count, fill=Spawn.Type)) +
         geom_bar(stat = "identity") +
         ggtitle("Spawn Type Frequency") + 
-        ylab("total spawn observations") + xlab(paste(input$xvar)) +
-        theme_bw() + theme(text = element_text(size = 16))
+        ylab("normalized counts") + xlab(paste(input$xvar)) +
+        theme_bw() + theme(text = element_text(size = 16)) +
+        theme(axis.text.x=element_text(angle=90,hjust=1))
       }
     else {
       SpawnDF %>% 
