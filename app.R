@@ -6,7 +6,7 @@ library(magrittr)
 library(htmltools)
 
 # Global variables
-SpawnDF <- read.csv(file="Data/SpawningData20180404.csv", header = TRUE)
+SpawnDF <- read.csv(file="Data/SpawningData20180501.csv", header = TRUE)
 
 #check that columns with dates are not character but date class
 SpawnDF$Spawn.Date=as.Date(SpawnDF$Spawn.Date)
@@ -41,7 +41,7 @@ ui <- fluidPage(
          ),
   column(9,
          plotOutput(outputId = "spawnplot"),
-         print("last updated 2018-04-05")
+         print("last updated 2018-05-01")
   )
   
 )
@@ -59,7 +59,6 @@ server <- function(input, output){
         count(Spawn.Type) %>%
         ggplot( aes(x=Lunar.age, y=n, fill=Spawn.Type)) +
         geom_bar(stat = "identity") +
-        ggtitle("Spawn Type Frequency") + 
         ylab("total spawn observations") + xlab(paste(input$xvar)) +
         theme_bw() + theme(text = element_text(size = 16))
     }  
@@ -75,8 +74,7 @@ server <- function(input, output){
         mutate(norm.Count = nn/n) %>% 
         ggplot( aes(x=Pair, y=norm.Count, fill=Spawn.Type)) +
         geom_bar(stat = "identity") +
-        ggtitle("Spawn Type Frequency") + 
-        ylab("normalized counts") + xlab(paste(input$xvar)) +
+        ylab("normalized counts") + xlab(input$xvar) +
         theme_bw() + theme(text = element_text(size = 16)) +
         theme(axis.text.x=element_text(angle=90,hjust=1))
       }
@@ -89,7 +87,7 @@ server <- function(input, output){
         mutate(norm.Count = n/ Total...of.tanks )  %>%
         ggplot( aes(x=Spawn.Date, y= norm.Count, fill=Spawn.Type) ) +
         geom_bar(stat = "identity") +
-        ggtitle("Spawning Frequency by calendar dates") + ylab("normalized counts")+
+        ylab("normalized counts") + xlab(paste(input$xvar)) +
         theme_bw()+ theme(text = element_text(size = 16))
     }
     
