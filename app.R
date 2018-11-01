@@ -6,7 +6,7 @@ library(magrittr)
 library(htmltools)
 
 # Global variables
-SpawnDF <- read.csv(file="Data/SpawningData20180710.csv", header = TRUE)
+SpawnDF <- read.csv(file="Data/SpawningData20181101.csv", header = TRUE)
 
 #check that columns with dates are not character but date class
 SpawnDF$Spawn.Date=as.Date(SpawnDF$Spawn.Date)
@@ -33,7 +33,7 @@ ui <- fluidPage(
          dateRangeInput(inputId = "daterange", label = "Enter a date range", 
                  format = "yyyy-mm-dd", start = "2016-01-01"),
          
-         selectInput(inputId ="xvar", label = "Select X-axis variable (Date, Lunar age, Strain)", choices = c("Spawn.Date", "Lunar.age", "Strain"), selected = "Spawn.Date"),
+         selectInput(inputId ="xvar", label = "Select X-axis variable from drop down menu", choices = c("Spawn.Date", "Lunar.age", "Strain"), selected = "Spawn.Date"),
          
          br(),
          
