@@ -41,7 +41,7 @@ ui <- fluidPage(
          ),
   column(9,
          plotOutput(outputId = "spawnplot"),
-         print("last updated 2018-07-10")
+         print("last updated 2018-11-01")
   )
   
 )
