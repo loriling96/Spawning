@@ -6,9 +6,16 @@ library(magrittr)
 library(tidyr)
 
 # Using updated Spawning Data retrieved 2017-03-06 ---------------------------------------------
-SpawnDF=read.csv(file="./Data/SpawningData20170306.csv")
+SpawnDF=read.csv(file="./Data/SpawningData20170331.csv", header = TRUE)
 
 levels(SpawnDF$Spawn.Type)
+#remove leading/trailing whitespace
+SType=trimws(SpawnDF$Spawn.Type, "right")
+#reassign levels
+levels(SType)= c("eggs", "sperm", "embryos", "larvae")
+#replace column data
+SpawnDF$Spawn.Type = SType
+
 
 #make sure Spawn.Dates are date class
 SpawnDF$Spawn.Date=as.Date(SpawnDF$Spawn.Date, format = "%m/%d/%y")
@@ -22,9 +29,24 @@ All_count<- SpawnDF %>%
 colnames(All_count)[colnames(All_count)=="n"] <- "Count"
 
 #calculate incubator efficiency Count/Tanks
-All_count<- All_count %>% mutate(norm.Count = Count/ Total...of.tanks)
+#All_count<- All_count %>% mutate(norm.Count = Count/ Total...of.tanks)
+##Just noticed that Total...of.tanks columns is the cumulative number of tanks, not number of active tanks
 
 saveRDS(All_count, file = "./Data/SpawnCounts20170306.rds")
+
+daterange=as.Date(c("2015-01-01", "2017-03-31"))
+
+SpawnDF %>% 
+  filter(Spawn.Date >= daterange[1] & Spawn.Date <= daterange[2]) %>% 
+  filter(Incubator %in% target) %>%
+  group_by(Spawn.Date, Total...of.tanks) %>% 
+  count(Spawn.Type) %>%
+  mutate(norm.Count = n/ Total...of.tanks )  %>%
+  ggplot( aes(x=Spawn.Date, y= norm.Count, fill=Spawn.Type) ) +
+  geom_bar(stat = "identity") +
+  ggtitle("Spawning Frequency by calendar dates") + ylab("normalized counts")+
+  theme_bw()+ theme(text = element_text(size = 16))
+
 
 # MERGE ALL INCUBATOR FORMATTED DATA INTO SUPER DF ------------------------
 
