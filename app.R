@@ -2,23 +2,25 @@
 
 library(shiny)
 library(tidyverse)
-library(magrittr)
 library(htmltools)
 
 # Global variables
-SpawnDF <- read.csv(file="Data/SpawningData20181101.csv", header = TRUE)
+SpawnDF <- read.csv(file="Data/SpawningData20190403.csv", header = TRUE)
 
 #check that columns with dates are not character but date class
-SpawnDF$Spawn.Date=as.Date(SpawnDF$Spawn.Date)
-SpawnDF$Start.Date=as.Date(SpawnDF$Start.Date)
+SpawnDF$Date.of.Spawn=as.Date(SpawnDF$Date.of.Spawn, "%m/%d/%Y")
+SpawnDF$Start.Date=as.Date(SpawnDF$Start.Date, "%m-%d-%Y")
 SpawnDF$End.Date=as.Date(SpawnDF$End.Date, "%Y-%m-%d")
-SpawnDF <- SpawnDF %>% mutate(age_Days = Spawn.Date - Start.Date) %>% 
+#final check
+str(SpawnDF)
+
+SpawnDF <- SpawnDF %>% mutate(age_Days = Date.of.Spawn -Start.Date) %>% 
   mutate(comp = age_Days >= Day.of.Cycle) %>% 
   mutate(Lunar.age = 28 * (as.numeric(age_Days) %/% 28) + Day.of.Cycle -1)
 
 
 # Fix levels of strains
-SpawnDF$Female <- as.factor(gsub("H2.", "H2", SpawnDF$Female))
+SpawnDF$Female <- as.factor(gsub("H2 ", "H2", SpawnDF$Female))
 SpawnDF$Female <- as.factor(gsub("unknown.*", "Unknown", SpawnDF$Female, ignore.case = TRUE))
 SpawnDF$Male <- as.factor(gsub("unknown.*", "Unknown", SpawnDF$Male, ignore.case = TRUE))
 Male.sel <- c("CC7", NA)
@@ -33,7 +35,7 @@ ui <- fluidPage(
          dateRangeInput(inputId = "daterange", label = "Enter a date range", 
                  format = "yyyy-mm-dd", start = "2016-01-01"),
          
-         selectInput(inputId ="xvar", label = "Select X-axis variable from drop down menu", choices = c("Spawn.Date", "Lunar.age", "Strain"), selected = "Spawn.Date"),
+         selectInput(inputId ="xvar", label = "Select X-axis variable from drop down menu", choices = c("Date.of.Spawn", "Lunar.age", "Strain"), selected = "Date.of.Spawn"),
          
          br(),
          
@@ -41,7 +43,7 @@ ui <- fluidPage(
          ),
   column(9,
          plotOutput(outputId = "spawnplot"),
-         print("last updated 2018-11-01")
+         print("last updated 2019-04-03")
   )
   
 )
@@ -52,7 +54,7 @@ server <- function(input, output){
   output$spawnplot <-renderPlot({ 
     if (input$xvar == "Lunar.age") {
       SpawnDF %>%
-        filter(Spawn.Date >= input$daterange[1] & Spawn.Date <= input$daterange[2]) %>% 
+        filter(Date.of.Spawn >= input$daterange[1] & Date.of.Spawn <= input$daterange[2]) %>% 
         filter(Incubator %in% input$target) %>% 
         filter(comp == TRUE & Lunar.age > 0) %>%
         group_by(Lunar.age) %>% 
@@ -64,7 +66,7 @@ server <- function(input, output){
     }  
     else if (input$xvar == "Strain") {
       SpawnDF %>%
-        filter(Spawn.Date >= input$daterange[1] & Spawn.Date <= input$daterange[2]) %>% 
+        filter(Date.of.Spawn >= input$daterange[1] & Date.of.Spawn <= input$daterange[2]) %>% 
         filter(Incubator %in% input$target) %>% 
         filter(Male %in% Male.sel) %>%
         mutate(Pair = paste0(Female, "_", Male)) %>% 
@@ -80,12 +82,12 @@ server <- function(input, output){
       }
     else {
       SpawnDF %>% 
-        filter(Spawn.Date >= input$daterange[1] & Spawn.Date <= input$daterange[2]) %>% 
+        filter(Date.of.Spawn >= input$daterange[1] & Date.of.Spawn <= input$daterange[2]) %>% 
         filter(Incubator %in% input$target) %>%
-        group_by(Spawn.Date, Total...of.tanks) %>% 
+        group_by(Date.of.Spawn, Total...of.tanks) %>% 
         count(Spawn.Type) %>%
         mutate(norm.Count = n/ Total...of.tanks )  %>%
-        ggplot( aes(x=Spawn.Date, y= norm.Count, fill=Spawn.Type) ) +
+        ggplot( aes(x=Date.of.Spawn, y= norm.Count, fill=Spawn.Type) ) +
         geom_bar(stat = "identity") +
         ylab("normalized counts") + xlab(paste(input$xvar)) +
         theme_bw()+ theme(text = element_text(size = 16))
