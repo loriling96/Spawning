@@ -6,7 +6,7 @@ library(htmltools)
 library(hms)
 
 # Global variables
-SpawnDF <- read.csv(file="Data/SpawningData20191014.csv", header = TRUE)
+SpawnDF <- read.csv(file="Data/SpawningData20191112.csv", header = TRUE)
 
 # new paste function to work on a vector
 paste3 <- function(...,sep=", ") {
@@ -73,7 +73,7 @@ ui <- fluidPage(
   column(9,
          plotOutput(outputId = "spawnplot"),
          br(),
-         print("last updated 2019-10-14")
+         print("last updated 2019-11-12")
       
   )
   
@@ -131,10 +131,11 @@ server <- function(input, output){
         filter(DATE >= input$daterange[1] & DATE <= input$daterange[2]) %>% 
         filter(Incubator %in% input$target) %>% 
         filter(!str_detect(Time.Found, "^4")) %>%
-        ggplot( aes(y=Incubator, x=as.hms(Time.Found))) +
+        ggplot( aes(x=Incubator, y=as.hms(Time.Found))) +
         geom_jitter(aes(color = Spawn.Type)) +
-        xlab("Time Found") + 
-        scale_x_time(labels = function(x) str_sub(x,1,5))+
+        ylab("Time Found") + 
+        xlab("Incubator") +
+        scale_y_time(labels = function(y) str_sub(y,1,5))+
         theme_bw() + theme(text = element_text(size = 16)) 
         #theme(axis.text.x=element_text(angle=90,hjust=1))
     }
