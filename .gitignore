@@ -1,3 +1,4 @@
+.secrets/
 .Rproj.user
 .Rhistory
 .RData
@@ -8,3 +9,4 @@ rsconnect/
 Santiago_spawn_data/
 *.pdf
 *.ppt
+*.html
