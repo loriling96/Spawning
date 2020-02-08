@@ -22,7 +22,7 @@ sheets_auth(token = drive_token(),
 sheets_get("1OgmHW3f9O3HHqp-5PK8jEj9vDwVHg1oTMw81Qg2GQkE")
 SpawnDF <- read_sheet("1OgmHW3f9O3HHqp-5PK8jEj9vDwVHg1oTMw81Qg2GQkE", sheet = 1, col_types = "c", na = "")
 
-# Convert dates from character to date class
+# Convert dates from character to date class using lubridate package
 SpawnDF$DATE <- lubridate::mdy(SpawnDF$DATE)
 SpawnDF$`Start Date`=lubridate::mdy(SpawnDF$`Start Date`)
 SpawnDF$`End Date`=lubridate::mdy(SpawnDF$`End Date`)
