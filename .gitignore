@@ -1,0 +1,12 @@
+.secrets/
+.Rproj.user
+.Rhistory
+.RData
+.Ruserdata
+Data/
+RawData/
+rsconnect/
+Santiago_spawn_data/
+*.pdf
+*.ppt
+*.html

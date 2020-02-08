@@ -61,18 +61,22 @@ ui <- fluidPage(
          
          dateRangeInput(inputId = "daterange", label = "Enter a date range", 
                         format = "yyyy-mm-dd", start = "2016-01-01"),
+
          
          selectInput(inputId ="xvar", label = "Select X-axis variable from drop down menu", choices = c("DATE", "Age of Tank", "Strain", "Time Found", "Tanks"), selected = "DATE"),
          
          br(),
          
          submitButton("Submit")
-  ),
+         ),
+
   column(9,
          plotOutput(outputId = "spawnplot"),
          br(),
          print("This web app is now directly linked to our lab server so all data is updated in real time. 2019-12-09")
-         
+
+      
+
   )
   
 )
@@ -125,7 +129,8 @@ server <- function(input, output){
         xlab(input$xvar) +
         theme_bw() + theme(text = element_text(size = 16)) +
         theme(axis.text.x=element_text(angle=90,hjust=1))
-    }
+      }
+
     else if (input$xvar == "Time Found") {
       SpawnDF %>%
         filter(DATE >= input$daterange[1] & DATE <= input$daterange[2]) %>% 
@@ -137,7 +142,8 @@ server <- function(input, output){
         xlab("Incubator") +
         scale_y_time(labels = function(y) str_sub(y,1,5))+
         theme_bw() + theme(text = element_text(size = 16)) 
-      theme(axis.text.x=element_text(angle=90,hjust=1))
+        theme(axis.text.x=element_text(angle=90,hjust=1))
+
     }
     else {
       SpawnDF %>% 
@@ -153,6 +159,7 @@ server <- function(input, output){
     }
     
     
+
   })
 }
 

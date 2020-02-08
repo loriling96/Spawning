@@ -1,0 +1,110 @@
+---
+title: "Does Age correlate with ability to spawn?"
+output:
+  pdf_document: default
+  html_notebook: default
+---
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+library(tidyverse)
+```
+
+```{r, message=FALSE, warning=FALSE}
+SpawnDF <- read_csv(file="Data/SpawningData20180327.csv")
+colnames(SpawnDF) <- c("Spawn.Date", "Incubator", "Start.Date", "End.Date", "Tank.Name", "Male", "Female", "Spawn.Type", "Time.Found", "Cleavage", "Day.of.Cycle", "Total.Tanks", "notes")
+SpawnDF$`Spawn.Date` <- as.Date(SpawnDF$`Spawn.Date`, "%m/%d/%y")
+SpawnDF$Start.Date <- as.Date(SpawnDF$Start.Date, "%m/%d/%y")
+SpawnDF$End.Date <- as.Date(SpawnDF$End.Date, "%m/%d/%y")
+levels(SpawnDF$Spawn.Type) <- c("eggs", "sperm", "embryos", "larvae")
+```
+
+```{r, echo=FALSE, message=FALSE, warning=FALSE}
+SpawnDF %>% mutate(age_Days = Spawn.Date - Start.Date) %>% filter(age_Days > 0) %>% 
+  count(age_Days) %>% 
+  ggplot( aes(x=age_Days, y=n)) +
+  geom_point() +
+  theme_bw() +
+  ggtitle("Correlation of age of tank with spawning amount") + 
+  xlab("Age of tank (days)")
+  
+
+```
+```{r, echo=FALSE, fig.height= 4}
+p<-SpawnDF %>% mutate(age_Days = Spawn.Date - Start.Date) %>% filter(age_Days > 0) %>% 
+  group_by(age_Days) %>% 
+      count(Spawn.Type) %>%
+      ggplot( aes(x=age_Days, y=n, fill=Spawn.Type)) +
+        geom_bar(stat = "identity") +
+        ggtitle("Spawn Type Frequency by age of tank") + 
+        ylab("total spawn observations") + xlab("Age (days)") +
+        theme_bw() + theme(text = element_text(size = 12))
+
+p
+
+#Zoom in
+p + coord_cartesian(xlim=c(0,250)) +ggtitle("Zoom in")
+```
+
+```{r, echo=FALSE}
+remove_tanks <- c("R_Orphansx5_051517", "R_Orphansx6_051517", "O_Orphansx4_031617", "Y_FP_W_012517")
+
+before_size <- SpawnDF %>% mutate(age_Days = Spawn.Date - Start.Date) %>% filter(age_Days > 0) %>%
+  filter(Spawn.Date < "2018-01-01" & Spawn.Date >= "2017-01-01" ) %>% 
+  filter(Spawn.Type == "eggs" | Spawn.Type == "sperm") %>%  
+  filter(!(Tank.Name %in% remove_tanks ) )
+
+before_size  %>% 
+  group_by(age_Days) %>% 
+      count(Spawn.Type) %>%
+      ggplot( aes(x=age_Days, y=n, fill=Spawn.Type)) +
+        geom_bar(stat = "identity") +
+        ggtitle("Spawn Type Frequency BEFORE sizing anemones") + 
+        ylab("total spawn observations") + xlab("Age (days)") +
+        theme_bw() + theme(text = element_text(size = 12)) +
+        coord_cartesian(xlim=c(0,90))
+```
+
+```{r, echo=FALSE}
+
+
+after_size <- SpawnDF %>% mutate(age_Days = Spawn.Date - Start.Date) %>% filter(age_Days > 0) %>% filter(Spawn.Date >= "2018-01-01" ) %>% filter(!(Tank.Name %in% remove_tanks ) )
+
+after_size %>% group_by(age_Days) %>% 
+      count(Spawn.Type) %>%
+      ggplot( aes(x=age_Days, y=n, fill=Spawn.Type)) +
+        geom_bar(stat = "identity") +
+        ggtitle("Spawn Type Frequency AFTER sizing anemones") + 
+        ylab("total spawn observations") + xlab("Age (days)") +
+        theme_bw() + theme(text = element_text(size = 12)) +
+       coord_cartesian(xlim=c(0,90))
+```
+```{r}
+SpawnDF %>%
+  filter(DATE >= "2019-06-27" & DATE <= "2019-09-04") %>% 
+  #filter(Incubator %in% input$target) %>% 
+  filter(age_Days > 0) %>%
+  filter(Start.Date > "2019-06-27") %>% 
+  group_by(age_Days) %>% 
+  add_count(Spawn.Type) %>%
+  ggplot( aes(x=age_Days, y=n, fill=Tank.Name)) +
+  geom_bar(stat = "identity") +
+  ylab("total spawn observations") + xlab("Age of Tanks") +
+  theme_bw() + theme(text = element_text(size = 16)) +
+  scale_x_continuous(breaks = seq(0,300, 28))+
+  ggtitle("Tanks added after Hawaii")
+
+SpawnDF %>%
+  filter(DATE >= "2019-06-27" & DATE <= "2019-09-04") %>% 
+  #filter(Incubator %in% input$target) %>% 
+  filter(age_Days > 0) %>%
+  filter(Start.Date < "2019-06-27") %>% 
+  group_by(age_Days) %>% 
+  add_count(Spawn.Type) %>%
+  ggplot( aes(x=age_Days, y=n)) +
+  geom_bar(stat = "identity", aes(fill=Tank.Name)) +
+  ylab("total spawn observations") + xlab("Age of Tanks") +
+  theme_bw() + theme(text = element_text(size = 16)) +
+  scale_x_continuous(breaks = seq(0,300, 28))+
+  ggtitle("Tanks added BEFORE Hawaii")
+```
+
