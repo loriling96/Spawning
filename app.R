@@ -11,14 +11,17 @@ library(googlesheets4)
 #list.files(".secrets/")
 
 ## Authenticate to Google Drive Non-interactive mode #
-drive_auth(cache = ".secrets/", email = TRUE)
+#drive_auth(cache = ".secrets/", email = TRUE)
 
-sheets_auth(token = drive_token(),
-            scopes = "https//www.googleapis.com/auth/spreadsheets.readonly")
+#sheets_auth(token = drive_token(),
+#            scopes = "https//www.googleapis.com/auth/spreadsheets.readonly")
 
 # read google sheet by ID
-sheets_get("1OgmHW3f9O3HHqp-5PK8jEj9vDwVHg1oTMw81Qg2GQkE")
-SpawnDF <- read_sheet("1OgmHW3f9O3HHqp-5PK8jEj9vDwVHg1oTMw81Qg2GQkE", sheet = 1, col_types = "c", na = "")
+#sheets_get("1OgmHW3f9O3HHqp-5PK8jEj9vDwVHg1oTMw81Qg2GQkE")
+#SpawnDF <- read_sheet("1OgmHW3f9O3HHqp-5PK8jEj9vDwVHg1oTMw81Qg2GQkE", sheet = 1, col_types = "c", na = "")
+
+# read in local static copy of Google sheet
+SpawnDF <- read_csv("Copy_of_Spawning_Fertilization_Data_January_29_2021_4_28_PM.csv")
 
 # Convert dates from character to date class using lubridate package
 SpawnDF$DATE <- lubridate::mdy(SpawnDF$DATE)
@@ -44,9 +47,10 @@ SpawnDF$Incubator <- as.factor(gsub("Green.*", "Green", SpawnDF$Incubator, ignor
 SpawnDF$Incubator <- as.factor(gsub("Red.*", "Red", SpawnDF$Incubator, ignore.case = TRUE))
 SpawnDF$Incubator <- as.factor(gsub("Yellow.*", "Yellow", SpawnDF$Incubator, ignore.case = TRUE))
 
-#convert `Time Found` into hms time class
-SpawnDF$`Time Found` <- gsub("NA", NA, SpawnDF$`Time Found`)
-SpawnDF$`Time Found` <- lubridate::hm(SpawnDF$`Time Found`)
+#convert `Time Found` into hms time class 
+#note 2025-11-25 no longer needed since reading in file with read_csv()
+#SpawnDF$`Time Found` <- gsub("NA", NA, SpawnDF$`Time Found`)
+#SpawnDF$`Time Found` <- lubridate::hm(SpawnDF$`Time Found`)
 
 
 
@@ -58,9 +62,9 @@ ui <- fluidPage(
                             selected = c("Blue", "Red", "Green","Orange", "Yellow")),
          
          dateRangeInput(inputId = "daterange", label = "Enter a date range", 
-                        format = "yyyy-mm-dd", start = "2016-01-01"),
+                        format = "yyyy-mm-dd", start = "2016-01-01", end = "2020-12-31"),
 
-         selectInput(inputId ="xvar", label = "Select X-axis variable from drop down menu", choices = c("DATE", "Age of Tank", "Strain", "Time Found", "Tanks"), selected = "DATE"),
+         selectInput(inputId ="xvar", label = "Select X-axis variable from drop down menu", choices = c("DATE", "Age of Tank", "Strain", "Time Found", "Tanks"), selected = "Time Found"),
          
          br(),
          
@@ -72,7 +76,8 @@ ui <- fluidPage(
          
          br(),
          
-         print("This web app is now directly linked to our lab server so all data is updated in real time. 2019-12-09")
+         #print("This web app is now directly linked to our lab server so all data is updated in real time. 2019-12-09")
+         print("This web app uses a static copy of Pringle Lab data. 2025-11-05")
          )
   )
 
@@ -126,33 +131,31 @@ server <- function(input, output){
         theme(axis.text.x=element_text(angle=90,hjust=1))
       }
 
-    else if (input$xvar == "Time Found") {
-      SpawnDF %>%
-        filter(DATE >= input$daterange[1] & DATE <= input$daterange[2]) %>% 
-        filter(Incubator %in% input$target) %>% 
-        filter(!str_detect(`Time Found`, "^4")) %>%
-        ggplot( aes(x=Incubator, y=as.hms(`Time Found`))) +
-        geom_jitter(aes(color = `Spawn Type`)) +
-        ylab("Incubator") + 
-        xlab("\n Time Found") +
-        scale_y_time(labels = function(y) str_sub(y,1,5))+
-        theme_bw() + theme(text = element_text(size = 16)) 
-        theme(axis.text.x=element_text(angle=90,hjust=1))
-    }
-    
-    else {
+    else if (input$xvar == "DATE") {
       SpawnDF %>% 
         filter(DATE >= input$daterange[1] & DATE <= input$daterange[2]) %>% 
         filter(Incubator %in% input$target) %>%
-        group_by(DATE, `Total # of tanks`) %>% 
+        group_by(DATE, Incubator, `Total # of tanks`) %>% 
         count(`Spawn Type`) %>%
-        mutate(norm.Count = n/ `Total # of tanks` )  %>%
-        ggplot( aes(x=DATE, y= norm.Count, fill=`Spawn Type`) ) +
+        ggplot( aes(x=DATE, y= n, fill=`Spawn Type`) ) +
         geom_bar(stat = "identity") +
-        ylab("normalized counts") + 
+        ylab("counts") + 
         xlab("\n Date") +
         theme_bw()+ theme(text = element_text(size = 16)) +
         facet_grid(rows = vars(Incubator))
+    }
+    
+    else {
+      SpawnDF %>%
+        filter(DATE >= input$daterange[1] & DATE <= input$daterange[2]) %>% 
+        filter(Incubator %in% input$target) %>% 
+        filter(!is.na(`Time Found`)) %>%
+        ggplot( aes(y=Incubator, x=`Time Found`)) +
+        geom_jitter(aes(color = `Spawn Type`)) +
+        ylab("Incubator") + 
+        xlab("\n Time Found") +
+        scale_x_time(labels = function(y) str_sub(y,1,5))+
+        theme_bw() + theme(text = element_text(size = 16))
      }
     
   })
